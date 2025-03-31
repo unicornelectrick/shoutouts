@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shoutout</title>
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    #profile {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    #clip {
+      width: 480px;
+      height: 270px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <img id="profile" src="" alt="Profile Image">
+    <iframe id="clip" src="" allowfullscreen></iframe>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const image = params.get("image");
+    const rawVideoUrl = params.get("video");
+    const time = parseInt(params.get("time")) || 10000;
+
+    const clipUrl = rawVideoUrl && rawVideoUrl.includes("clips.twitch.tv")
+      ? `${rawVideoUrl}&parent=github.io`
+      : rawVideoUrl;
+
+    document.getElementById("profile").src = image;
+    document.getElementById("clip").src = clipUrl;
+
+    setTimeout(() => {
+      window.location.href = "about:blank";
+    }, time);
+  </script>
+</body>
+</html>
