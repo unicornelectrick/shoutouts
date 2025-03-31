@@ -38,23 +38,23 @@
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const image = params.get("image");
+const params = new URLSearchParams(window.location.search);
+const image = params.get("image");
 const rawVideoUrl = params.get("video");
-    const time = parseInt(params.get("time")) || 10000;
+const time = parseInt(params.get("time")) || 10000;
 
-// Append the required parent=... for Twitch embedding
+// 👇 Add both &parent=... and &autoplay=true
 const clipUrl = rawVideoUrl && rawVideoUrl.includes("clips.twitch.tv")
-  ? `${rawVideoUrl}&parent=unicornelectrick.github.io`
+  ? `${rawVideoUrl}&parent=unicornelectrick.github.io&autoplay=true`
   : rawVideoUrl;
 
-    document.getElementById("profile").src = image;
+document.getElementById("profile").src = image;
 document.getElementById("clip").src = clipUrl;
 
+setTimeout(() => {
+  window.location.href = "about:blank";
+}, time);
 
-    setTimeout(() => {
-      window.location.href = "about:blank";
-    }, time);
   </script>
 </body>
 </html>
