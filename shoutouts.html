@@ -2,62 +2,106 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Shoutout</title>
+  <title>Shoutout Player</title>
   <style>
     body {
       margin: 0;
       background: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       overflow: hidden;
     }
-    #container {
-      display: flex;
-      align-items: center;
-      gap: 20px;
+    #imagebox {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 35%;
+      height: auto;
+      transform: translate(-50%, -50%);
+      z-index: 1;
     }
-    #profile {
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      object-fit: cover;
+    #imagebox img {
+      width: 100%;
+      border-radius: 1rem;
     }
-    #clip {
-      width: 480px;
-      height: 270px;
-      border: none;
+    #videoContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 10;
+      visibility: hidden;
+    }
+    video {
+      width: 100%;
     }
   </style>
 </head>
-<body>
-  <div id="container">
-    <img id="profile" src="" alt="Profile Image">
-<video id="clip" autoplay muted playsinline>
-  <source src="https://production.assets.clips.twitchcdn.net/AT-cm%7CAdorableWrongWerewolfDerp-9xmWCZtnvdvQFqbP.mp4" type="video/mp4">
-</video>
+<body onload="startShoutout()">
 
+  <div id="videoContainer">
+    <video id="videoplayer" autoplay muted onended="cleanup()" playsinline></video>
+  </div>
+
+  <div id="imagebox">
+    <img id="profileImage" src="" alt="Profile" />
   </div>
 
   <script>
-const params = new URLSearchParams(window.location.search);
-const image = params.get("image");
-const rawVideoUrl = params.get("video");
-const time = parseInt(params.get("time")) || 10000;
+    function cleanup() {
+      document.getElementById("videoplayer").src = "";
+      document.getElementById("profileImage").src = "";
+    }
 
-// 👇 Add both &parent=... and &autoplay=true
-const clipUrl = rawVideoUrl && rawVideoUrl.includes("clips.twitch.tv")
-  ? `${rawVideoUrl}&parent=unicornelectrick.github.io&autoplay=true`
-  : rawVideoUrl;
+    function startShoutout() {
+      const params = new URLSearchParams(window.location.search);
+      const image = params.get("image");
+      const videoEmbedUrl = params.get("video");
+      const thumb = params.get("thumbnail_url");
+      const duration = parseInt(params.get("time")) || 10000;
 
-document.getElementById("profile").src = image;
-document.getElementById("clip").src = clipUrl;
+      // Set profile image
+      document.getElementById("profileImage").src = image;
 
-setTimeout(() => {
-  window.location.href = "about:blank";
-}, time);
+      // Get clip ID from ?clip=slug
+      const match = videoEmbedUrl.match(/clip=([^&]+)/);
+      const clipId = match ? match[1] : null;
+      if (!clipId) return;
 
+      // GraphQL fetch to get MP4
+      const query = {
+        operationName: "VideoAccessToken_Clip",
+        variables: { slug: clipId },
+        extensions: {
+          persistedQuery: {
+            version: 1,
+            sha256Hash: "36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11"
+          }
+        }
+      };
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://gql.twitch.tv/gql", false);
+      xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+      xhr.setRequestHeader("Client-ID", "kimne78kx3ncx6brgo4mv6wki5h1ko");
+      xhr.send(JSON.stringify(query));
+
+      if (xhr.status !== 200) return;
+      const response = JSON.parse(xhr.responseText);
+      const mp4Url = response.data.clip.videoQualities[0].sourceURL;
+      const sig = response.data.clip.playbackAccessToken.signature;
+      const token = encodeURIComponent(response.data.clip.playbackAccessToken.value);
+      const finalUrl = `${mp4Url}?sig=${sig}&token=${token}`;
+
+      const video = document.getElementById("videoplayer");
+      video.src = finalUrl;
+      video.load();
+      video.play();
+      document.getElementById("videoContainer").style.visibility = "visible";
+
+      setTimeout(() => {
+        window.location.href = "about:blank";
+      }, duration);
+    }
   </script>
+
 </body>
 </html>
