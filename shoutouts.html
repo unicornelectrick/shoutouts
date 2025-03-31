@@ -40,15 +40,17 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const image = params.get("image");
-    const rawVideoUrl = params.get("video");
+const rawVideoUrl = params.get("video");
     const time = parseInt(params.get("time")) || 10000;
 
-    const clipUrl = rawVideoUrl && rawVideoUrl.includes("clips.twitch.tv")
-      ? `${rawVideoUrl}&parent=github.io`
-      : rawVideoUrl;
+// Append the required parent=... for Twitch embedding
+const clipUrl = rawVideoUrl && rawVideoUrl.includes("clips.twitch.tv")
+  ? `${rawVideoUrl}&parent=unicornelectrick.github.io`
+  : rawVideoUrl;
 
     document.getElementById("profile").src = image;
-    document.getElementById("clip").src = clipUrl;
+document.getElementById("clip").src = clipUrl;
+
 
     setTimeout(() => {
       window.location.href = "about:blank";
