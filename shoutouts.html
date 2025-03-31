@@ -26,41 +26,48 @@
       border: none;
     }
 
-    #overlay {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      display: flex;
-      align-items: center;
-      background-color: rgba(0, 0, 0, 0.6);
-      padding: 6px 10px;
-      border-radius: 30px;
-    }
-
     #profile {
-      width: 40px;
-      height: 40px;
+      position: absolute;
+      bottom: -20px;
+      left: -20px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       object-fit: cover;
-      margin-right: 10px;
+      border: 3px solid white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
     #username {
+      position: absolute;
+      bottom: 15px;
+      left: 75px;
       color: white;
       font-family: sans-serif;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: bold;
-      white-space: nowrap;
+      text-shadow: 1px 1px 4px black;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #username::before {
+      content: "";
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background-image: url("./glitch_flat_purple.png");
+      background-size: contain;
+      background-repeat: no-repeat;
     }
   </style>
 </head>
 <body>
   <div id="clip-container">
     <video id="clip" autoplay playsinline></video>
-    <div id="overlay">
-      <img id="profile" src="" alt="Profile Image">
-      <div id="username">@username</div>
-    </div>
+    <img id="profile" src="" alt="Profile Image">
+    <div id="username">username</div>
   </div>
 
   <script>
@@ -103,7 +110,7 @@
     });
 
     document.getElementById("profile").src = image;
-    document.getElementById("username").innerText = `@${username}`;
+    document.getElementById("username").innerText = username;
 
     setTimeout(() => {
       window.location.href = "about:blank";
