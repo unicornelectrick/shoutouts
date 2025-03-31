@@ -24,7 +24,12 @@
       width: 100%;
       height: 100%;
       border: none;
-border-radius: 1rem;
+      border-radius: 1rem;
+    }
+
+    #profile,
+    #username {
+      visibility: hidden; /* Hide until video is ready */
     }
 
     #profile {
@@ -44,7 +49,7 @@ border-radius: 1rem;
       bottom: 10px;
       left: 95px;
       color: white;
-      font-family: Roobert TW,ui-sans-serif,system-ui,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol,noto color emoji;
+      font-family: Roobert TW, ui-sans-serif, system-ui, sans-serif, apple color emoji, segoe ui emoji, segoe ui symbol, noto color emoji;
       font-size: 16px;
       font-weight: 500;
       text-shadow: 1px 1px 4px black;
@@ -107,7 +112,19 @@ border-radius: 1rem;
       const sig = data.data.clip.playbackAccessToken.signature;
       const token = encodeURIComponent(data.data.clip.playbackAccessToken.value);
       const finalUrl = `${sourceURL}?sig=${sig}&token=${token}`;
-      document.getElementById("clip").src = finalUrl;
+
+      const video = document.getElementById("clip");
+      const profile = document.getElementById("profile");
+      const usernameDiv = document.getElementById("username");
+
+      video.src = finalUrl;
+
+      // Wait for the video to be ready before showing profile/username
+      video.oncanplay = () => {
+        profile.style.visibility = "visible";
+        usernameDiv.style.visibility = "visible";
+        video.play();
+      };
     });
 
     document.getElementById("profile").src = image;
