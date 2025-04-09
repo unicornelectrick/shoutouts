@@ -78,15 +78,29 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const image = params.get("image");
-    const rawVideoUrl = params.get("video");
-    const username = params.get("user");
-    const time = parseInt(params.get("time")) || 10000;
+const rawVideoUrl = params.get("video");
+const image = params.get("image");
+const username = params.get("user");
+const time = parseInt(params.get("time")) || 10000;
 
-    const match = rawVideoUrl.match(/clip=([^&]+)/);
-    const clipId = match ? match[1] : null;
+// 🔍 Log the incoming query params
+console.log("video:", rawVideoUrl, "image:", image, "user:", username, "time:", time);
 
-    const gqlUrl = "https://gql.twitch.tv/gql";
+// Safety check in case `video` param is missing or malformed
+if (!rawVideoUrl || !rawVideoUrl.includes("clip=")) {
+  console.error("Invalid or missing video URL:", rawVideoUrl);
+  document.getElementById("username").innerText = username || "Unknown User";
+  document.getElementById("profile").src = image || "";
+  document.getElementById("profile").style.visibility = "visible";
+  document.getElementById("username").style.visibility = "visible";
+  setTimeout(() => {
+    window.location.href = "about:blank";
+  }, time);
+  throw new Error("Missing or invalid Twitch clip URL. Aborting shoutout.");
+}
+
+const match = rawVideoUrl.match(/clip=([^&]+)/);
+const clipId = match ? match[1] : null;    const gqlUrl = "https://gql.twitch.tv/gql";
     const query = {
       operationName: "VideoAccessToken_Clip",
       variables: { slug: clipId },
