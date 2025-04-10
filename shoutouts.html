@@ -76,60 +76,61 @@
     <div id="username">username</div>
   </div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const rawVideoUrl = params.get("video");
-    const image = params.get("image");
-    const username = params.get("user");
-    const time = parseInt(params.get("time")) || 10000;
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const rawVideoUrl = params.get("video");
+  const image = params.get("image");
+  const username = params.get("user");
+  const time = parseInt(params.get("time")) || 10000;
 
-    const video = document.getElementById("clip");
-    const profile = document.getElementById("profile");
-    const usernameDiv = document.getElementById("username");
+  const video = document.getElementById("clip");
+  const profile = document.getElementById("profile");
+  const usernameDiv = document.getElementById("username");
 
-    // 🔍 Log the incoming query params
-    console.log("video:", rawVideoUrl, "image:", image, "user:", username, "time:", time);
+  // 🔍 Log the incoming query params
+  console.log("video:", rawVideoUrl, "image:", image, "user:", username, "time:", time);
 
-    // Safety check in case `video` param is missing or malformed
-    if (!rawVideoUrl || !rawVideoUrl.includes("clip=")) {
-      console.error("Invalid or missing video URL:", rawVideoUrl);
-      usernameDiv.innerText = username || "Unknown User";
-      profile.src = image || "";
-      profile.style.visibility = "visible";
-      usernameDiv.style.visibility = "visible";
-      setTimeout(() => window.location.href = "about:blank", time);
-      throw new Error("Missing or invalid Twitch clip URL. Aborting shoutout.");
-    }
+  // ✅ Try to extract clip ID from known formats
+  let clipId = null;
+  const clipParamMatch = rawVideoUrl?.match(/clip=([^&]+)/);
+  const clipPathMatch = rawVideoUrl?.match(/\/clip\/([a-zA-Z0-9_-]+)/);
+  if (clipParamMatch) {
+    clipId = clipParamMatch[1];
+  } else if (clipPathMatch) {
+    clipId = clipPathMatch[1];
+  }
 
-    const clipId = rawVideoUrl.match(/clip=([^&]+)/)?.[1];
+  if (!rawVideoUrl || !clipId) {
+    console.error("❌ Invalid or missing clip ID. URL:", rawVideoUrl);
+    usernameDiv.innerText = username || "Unknown User";
+    profile.src = image || "";
+    profile.style.visibility = "visible";
+    usernameDiv.style.visibility = "visible";
+    setTimeout(() => window.location.href = "about:blank", time);
+    throw new Error("Missing or malformed Twitch clip URL. Aborting shoutout.");
+  }
 
-    if (!clipId) {
-      console.error("Failed to extract clip ID from URL:", rawVideoUrl);
-      setTimeout(() => window.location.href = "about:blank", time);
-      throw new Error("Invalid clip ID.");
-    }
-
-    // GQL to fetch .mp4 source
-    const gqlUrl = "https://gql.twitch.tv/gql";
-    const query = {
-      operationName: "VideoAccessToken_Clip",
-      variables: { slug: clipId },
-      extensions: {
-        persistedQuery: {
-          version: 1,
-          sha256Hash: "36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11"
-        }
+  // 🧠 Fetch raw MP4 from GQL
+  const gqlUrl = "https://gql.twitch.tv/gql";
+  const query = {
+    operationName: "VideoAccessToken_Clip",
+    variables: { slug: clipId },
+    extensions: {
+      persistedQuery: {
+        version: 1,
+        sha256Hash: "36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11"
       }
-    };
+    }
+  };
 
-    fetch(gqlUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=UTF-8",
-        "Client-ID": "kimne78kx3ncx6brgo4mv6wki5h1ko"
-      },
-      body: JSON.stringify(query)
-    })
+  fetch(gqlUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=UTF-8",
+      "Client-ID": "kimne78kx3ncx6brgo4mv6wki5h1ko"
+    },
+    body: JSON.stringify(query)
+  })
     .then(res => res.json())
     .then(data => {
       const sourceURL = data.data.clip.videoQualities[0].sourceURL;
@@ -139,7 +140,7 @@
 
       video.src = finalUrl;
 
-      // Reveal profile image and username when video is ready
+      // 🎉 Reveal visuals when ready
       video.oncanplay = () => {
         profile.style.visibility = "visible";
         usernameDiv.style.visibility = "visible";
@@ -147,13 +148,14 @@
       };
     });
 
-    // Always set static info regardless of video loading
-    profile.src = image;
-    usernameDiv.innerText = username;
+  // Static UI
+  profile.src = image;
+  usernameDiv.innerText = username;
 
-    setTimeout(() => {
-      window.location.href = "about:blank";
-    }, time);
-  </script>
+  setTimeout(() => {
+    window.location.href = "about:blank";
+  }, time);
+</script>
+
 </body>
 </html>
